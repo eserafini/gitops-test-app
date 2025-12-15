@@ -1,0 +1,101 @@
+name: PR Environment
+
+on:
+  pull_request:
+    types: [opened, synchronize, closed]
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+env:
+  ARGOCD_MANIFESTS_REPO: eserafini/argocd-manifests
+  APP_NAME: gitops-test-app
+  CLUSTER_PATH: clusters/prod-us-central1
+
+jobs:
+  deploy-preview:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gitops-test-app
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Checkout argocd-manifests
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.ARGOCD_MANIFESTS_REPO }}
+          token: ${{ secrets.ARGOCD_MANIFESTS_TOKEN || secrets.GITHUB_TOKEN }}
+          path: argocd-manifests
+
+      - name: Setup variables
+        id: vars
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          IMAGE_TAG="pr-${PR_NUMBER}-${GITHUB_SHA::8}"
+          TARGET_REVISION="${{ github.event.pull_request.head.ref }}"
+
+          echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_OUTPUT
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "TARGET_REVISION=${TARGET_REVISION}" >> $GITHUB_OUTPUT
+          echo "APP_FILE=pr-${PR_NUMBER}-${APP_NAME}.yaml" >> $GITHUB_OUTPUT
+
+          echo "PR Number: ${PR_NUMBER}"
+          echo "Image Tag: ${IMAGE_TAG}"
+          echo "Target Revision: ${TARGET_REVISION}"
+
+      - name: Generate Application manifest
+        run: |
+          cd argocd-manifests
+
+          # Ler template e substituir variáveis
+          sed \
+            -e "s/{{PR_NUMBER}}/${{ steps.vars.outputs.PR_NUMBER }}/g" \
+            -e "s/{{IMAGE_TAG}}/${{ steps.vars.outputs.IMAGE_TAG }}/g" \
+            -e "s/{{TARGET_REVISION}}/${{ steps.vars.outputs.TARGET_REVISION }}/g" \
+            -e "s/{{APP_NAME}}/${APP_NAME}/g" \
+            ${CLUSTER_PATH}/templates/preview-application.yaml \
+            > ${CLUSTER_PATH}/apps/${{ steps.vars.outputs.APP_FILE }}
+
+      - name: Commit and push
+        run: |
+          cd argocd-manifests
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add ${CLUSTER_PATH}/apps/${{ steps.vars.outputs.APP_FILE }}
+          git commit -m "Add PR environment for PR #${{ steps.vars.outputs.PR_NUMBER }} [gitops-test-app]"
+          git push
+
+  cleanup-preview:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout argocd-manifests
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.ARGOCD_MANIFESTS_REPO }}
+          token: ${{ secrets.ARGOCD_MANIFESTS_TOKEN || secrets.GITHUB_TOKEN }}
+          path: argocd-manifests
+
+      - name: Remove Application manifest
+        run: |
+          cd argocd-manifests
+
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          APP_FILE="${CLUSTER_PATH}/apps/pr-${PR_NUMBER}-${APP_NAME}.yaml"
+
+          if [ -f "$APP_FILE" ]; then
+            git rm "$APP_FILE"
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git commit -m "Remove PR environment for PR #${PR_NUMBER} [gitops-test-app]"
+            git push
+          else
+            echo "Application file not found, nothing to clean up"
+          fi
