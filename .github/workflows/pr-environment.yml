@@ -116,8 +116,8 @@ jobs:
         run: |
           cd argocd-manifests
 
-          # Ler template e substituir variáveis
-          # Usando | como delimitador para evitar conflito com / nas URLs
+          mkdir -p ${CLUSTER_PATH}/apps
+
           sed \
             -e "s|{{PR_NUMBER}}|${{ steps.vars.outputs.PR_NUMBER }}|g" \
             -e "s|{{IMAGE_TAG}}|${{ steps.vars.outputs.IMAGE_TAG }}|g" \
@@ -125,6 +125,9 @@ jobs:
             -e "s|{{APP_NAME}}|${APP_NAME}|g" \
             ${CLUSTER_PATH}/templates/preview-application.yaml \
             > ${CLUSTER_PATH}/apps/${{ steps.vars.outputs.APP_FILE }}
+
+          echo "Generated Application:"
+          cat ${CLUSTER_PATH}/apps/${{ steps.vars.outputs.APP_FILE }}
 
       - name: Commit and push
         run: |
@@ -134,7 +137,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git add ${CLUSTER_PATH}/apps/${{ steps.vars.outputs.APP_FILE }}
-          git commit -m "Add PR environment for PR #${{ steps.vars.outputs.PR_NUMBER }} [gitops-test-app]"
+          git commit --allow-empty -m "Add PR environment for PR #${{ steps.vars.outputs.PR_NUMBER }} [gitops-test-app]"
           git push origin HEAD:main
 
   cleanup-preview:
