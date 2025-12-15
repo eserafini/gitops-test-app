@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: gitops-test-app
+  repository: ghcr.io/eserafini/gitops-test-app
   pullPolicy: IfNotPresent
   tag: "latest"
 
