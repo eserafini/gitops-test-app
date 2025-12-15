@@ -17,13 +17,18 @@ Uma aplicação TypeScript para testar GitOps com ArgoCD.
 gitops-test-app/
 ├── src/
 │   └── index.ts          # Código fonte
-├── chart/                # Helm Chart
-│   ├── Chart.yaml
-│   ├── values.yaml
-│   └── templates/
-├── values/               # Valores por ambiente
-│   ├── prod.yaml
-│   └── preview.yaml
+├── helm/                 # Helm Chart
+│   ├── Chart.yaml        # Metadados do chart
+│   ├── values.yaml       # Valores padrão
+│   ├── templates/        # Templates Kubernetes
+│   │   ├── deployment.yaml
+│   │   ├── service.yaml
+│   │   └── serviceaccount.yaml
+│   └── values/           # Valores por ambiente
+│       ├── prod/
+│       │   └── values.yaml
+│       └── preview/
+│           └── values.yaml
 ├── .github/
 │   └── workflows/        # GitHub Actions
 ├── Dockerfile
@@ -71,4 +76,9 @@ docker run -p 3000:3000 gitops-test-app:latest
 
 ## Kubernetes
 
-Deploy via ArgoCD usando o Helm Chart em `chart/`.
+Deploy via ArgoCD usando o Helm Chart em `helm/`.
+
+### Estrutura de ambientes
+
+- **Produção**: `helm/values/prod/values.yaml`
+- **Preview (PR)**: `helm/values/preview/values.yaml`
