@@ -33,6 +33,8 @@ jobs:
           app-id: ${{ secrets.GH_APP_ID }}
           private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
           installation-id: ${{ secrets.GH_APP_INSTALLATION_ID }}
+          owner: eserafini
+          repositories: argocd-manifests
 
       - name: Checkout argocd-manifests
         uses: actions/checkout@v4
@@ -94,6 +96,8 @@ jobs:
           app-id: ${{ secrets.GH_APP_ID }}
           private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
           installation-id: ${{ secrets.GH_APP_INSTALLATION_ID }}
+          owner: eserafini
+          repositories: argocd-manifests
 
       - name: Checkout argocd-manifests
         uses: actions/checkout@v4
