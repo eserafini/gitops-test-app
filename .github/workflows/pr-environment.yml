@@ -26,11 +26,19 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
 
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          installation-id: ${{ secrets.GH_APP_INSTALLATION_ID }}
+
       - name: Checkout argocd-manifests
         uses: actions/checkout@v4
         with:
           repository: ${{ env.ARGOCD_MANIFESTS_REPO }}
-          token: ${{ secrets.ARGOCD_MANIFESTS_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           path: argocd-manifests
           persist-credentials: true
 
@@ -79,11 +87,19 @@ jobs:
     if: github.event.action == 'closed'
     runs-on: ubuntu-latest
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          installation-id: ${{ secrets.GH_APP_INSTALLATION_ID }}
+
       - name: Checkout argocd-manifests
         uses: actions/checkout@v4
         with:
           repository: ${{ env.ARGOCD_MANIFESTS_REPO }}
-          token: ${{ secrets.ARGOCD_MANIFESTS_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           path: argocd-manifests
           persist-credentials: true
 
