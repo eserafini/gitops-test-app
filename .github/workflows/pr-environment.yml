@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 env:
   ARGOCD_MANIFESTS_REPO: eserafini/argocd-manifests
@@ -31,6 +32,7 @@ jobs:
           repository: ${{ env.ARGOCD_MANIFESTS_REPO }}
           token: ${{ secrets.ARGOCD_MANIFESTS_TOKEN || secrets.GITHUB_TOKEN }}
           path: argocd-manifests
+          persist-credentials: true
 
       - name: Setup variables
         id: vars
@@ -71,7 +73,7 @@ jobs:
 
           git add ${CLUSTER_PATH}/apps/${{ steps.vars.outputs.APP_FILE }}
           git commit -m "Add PR environment for PR #${{ steps.vars.outputs.PR_NUMBER }} [gitops-test-app]"
-          git push
+          git push origin HEAD:main
 
   cleanup-preview:
     if: github.event.action == 'closed'
@@ -83,6 +85,7 @@ jobs:
           repository: ${{ env.ARGOCD_MANIFESTS_REPO }}
           token: ${{ secrets.ARGOCD_MANIFESTS_TOKEN || secrets.GITHUB_TOKEN }}
           path: argocd-manifests
+          persist-credentials: true
 
       - name: Remove Application manifest
         run: |
@@ -96,7 +99,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git commit -m "Remove PR environment for PR #${PR_NUMBER} [gitops-test-app]"
-            git push
+            git push origin HEAD:main
           else
             echo "Application file not found, nothing to clean up"
           fi
