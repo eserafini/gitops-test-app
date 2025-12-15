@@ -3,14 +3,14 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install yarn
-RUN corepack enable && corepack prepare yarn@stable --activate
+# Install yarn 1.x (compatível com yarn.lock existente)
+RUN apk add --no-cache yarn
 
 # Copy package files
 COPY package.json yarn.lock* ./
 
 # Install dependencies
-RUN yarn install --immutable
+RUN yarn install --frozen-lockfile
 
 # Copy source code
 COPY . .
@@ -23,17 +23,15 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install yarn
-RUN corepack enable && corepack prepare yarn@stable --activate
+# Install yarn 1.x (compatível com yarn.lock existente)
+RUN apk add --no-cache yarn
 
 # Copy package files
 COPY package.json yarn.lock* ./
 
-# Install dependencies
-# Nota: Yarn moderno não suporta --production diretamente
-# Instalamos tudo (devDependencies não são usadas em runtime, apenas ocupam espaço)
+# Install only production dependencies
 ENV NODE_ENV=production
-RUN yarn install --immutable
+RUN yarn install --frozen-lockfile --production
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
