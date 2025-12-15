@@ -10,7 +10,7 @@ RUN corepack enable && corepack prepare yarn@stable --activate
 COPY package.json yarn.lock* ./
 
 # Install dependencies
-RUN yarn install --frozen-lockfile
+RUN yarn install --immutable
 
 # Copy source code
 COPY . .
@@ -29,8 +29,11 @@ RUN corepack enable && corepack prepare yarn@stable --activate
 # Copy package files
 COPY package.json yarn.lock* ./
 
-# Install only production dependencies
-RUN yarn install --frozen-lockfile --production
+# Install dependencies
+# Nota: Yarn moderno não suporta --production diretamente
+# Instalamos tudo (devDependencies não são usadas em runtime, apenas ocupam espaço)
+ENV NODE_ENV=production
+RUN yarn install --immutable
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
