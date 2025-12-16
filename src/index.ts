@@ -18,7 +18,7 @@ app.get("/health", (req: Request, res: Response) => {
 // Root endpoint
 app.get("/", (req: Request, res: Response) => {
   res.json({
-    message: "GitOps Test App is running!",
+    message: "You are GAY!",
     version: VERSION,
     environment: process.env.NODE_ENV || "development",
   });
@@ -33,6 +33,6 @@ app.get("/api/hello", (req: Request, res: Response) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`GitOps Test App v${VERSION} listening on port!!!!!!! ${PORT}`);
+  console.log(`GitOps Test App v${VERSION} listening on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
 });
