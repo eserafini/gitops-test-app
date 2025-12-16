@@ -1,0 +1,48 @@
+# Values para PR Environments (Preview)
+# Este arquivo contém apenas as overrides específicas para ambientes de preview
+# Valores base são herdados de values.yaml
+
+replicaCount: 1
+
+# Image tag será sobrescrito pelo ArgoCD via parâmetro Helm
+# image.tag será definido dinamicamente: pr-<NUMBER>-<SHA>
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  # Host será sobrescrito pelo ArgoCD via parâmetro Helm
+  # Formato: pr-<NUMBER>.gitops-test-app.136.113.78.99.nip.io
+  hosts:
+    - host: "pr-preview.gitops-test-app.136.113.78.99.nip.io"  # Placeholder - será sobrescrito
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: "gitops-test-app-preview-tls"  # Será sobrescrito pelo ArgoCD
+      hosts:
+        - "pr-preview.gitops-test-app.136.113.78.99.nip.io"  # Placeholder - será sobrescrito
+
+# Recursos reduzidos para PR environments (economia de custos)
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+# Autoscaling desabilitado para PR environments
+autoscaling:
+  enabled: false
+
+# Variáveis de ambiente específicas para preview
+env:
+  - name: NODE_ENV
+    value: "preview"
+  - name: PORT
+    value: "3000"
+  - name: VERSION
+    value: "preview"
+
