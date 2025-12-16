@@ -33,6 +33,6 @@ app.get("/api/hello", (req: Request, res: Response) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`GitOps Test App v${VERSION} listening on port!!! ${PORT}`);
+  console.log(`GitOps Test App v${VERSION} listening on port!!!! ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
 });
