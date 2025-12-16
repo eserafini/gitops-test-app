@@ -27,15 +27,19 @@ service:
   targetPort: 3000
 
 ingress:
-  enabled: false
-  className: ""
-  annotations: {}
+  enabled: false  # Habilitado apenas em values/preview/values.yaml
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
   hosts:
     - host: gitops-test-app.local
       paths:
         - path: /
           pathType: Prefix
-  tls: []
+  tls:
+    - secretName: gitops-test-app-tls
+      hosts:
+        - gitops-test-app.local
 
 resources:
   limits:
